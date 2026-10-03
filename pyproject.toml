@@ -1,0 +1,24 @@
+[project]
+name = "album_review_app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "ksenyafedkova", email = "fedkovaksenya2609@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "requests",
+    "dotenv",
+    "python-dotenv",
+    "streamlit",
+    "mysql-connector-python",
+    "bcrypt",
+]
+
+[project.scripts]
+temporary = "temporary:main"
+
+[build-system]
+requires = ["uv_build>=0.12.22,<0.13.0"]
+build-backend = "uv_build"
