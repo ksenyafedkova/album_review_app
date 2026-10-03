@@ -14,6 +14,7 @@ dependencies = [
     "streamlit",
     "mysql-connector-python",
     "bcrypt",
+    "fastapi>=0.142.2",
 ]
 
 [project.scripts]

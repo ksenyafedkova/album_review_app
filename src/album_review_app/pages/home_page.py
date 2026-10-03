@@ -1,6 +1,6 @@
 import streamlit as st
 from album_review_app.ui import hide_sidebar_navigation, show_user_sidebar
-from album_review_app.db_request import get_user_albums, delete_from_shelf
+from album_review_app.backend.db_request import get_user_albums, delete_from_shelf
 from album_review_app.logger import logger
 from album_review_app.album_page import show_album_page
 

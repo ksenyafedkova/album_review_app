@@ -4,7 +4,7 @@ from album_review_app.spotify_api import search_
 from album_review_app.album_page import show_album_page
 from album_review_app.logger import logger
 
-from album_review_app.db_request import (save_album_to_shelf)
+from album_review_app.backend.db_request import (save_album_to_shelf)
 
 hide_sidebar_navigation()
 show_user_sidebar()
