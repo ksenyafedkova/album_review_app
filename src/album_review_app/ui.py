@@ -12,7 +12,7 @@ def hide_sidebar_navigation():
 
 def show_user_sidebar():
     if st.session_state.get("logged_in") is not True:
-        st.switch_page("../main.py")
+        st.switch_page("main.py")
     st.sidebar.success(f"Logged in as {st.session_state.get('username')}")
     if st.sidebar.button("🏠 Home"):
         st.switch_page("pages/home_page.py")
@@ -27,4 +27,4 @@ def show_user_sidebar():
         st.session_state['logged_in'] = False
         st.session_state.pop('user_id', None)
         st.session_state.pop('username', None)
-        st.switch_page("../main.py")
+        st.switch_page("main.py")

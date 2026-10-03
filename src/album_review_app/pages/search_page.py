@@ -1,11 +1,10 @@
 import streamlit as st
-from ui import hide_sidebar_navigation, show_user_sidebar
-from spotify_api import search_, get_album_info_from_spotify
-from album_page import show_album_page
-from logger import logger
+from album_review_app.ui import hide_sidebar_navigation, show_user_sidebar
+from album_review_app.spotify_api import search_
+from album_review_app.album_page import show_album_page
+from album_review_app.logger import logger
 
-from db_request import (get_album, add_to_shelf, save_album_to_shelf,
-                        add_artist, add_album, get_artist)
+from album_review_app.db_request import (save_album_to_shelf)
 
 hide_sidebar_navigation()
 show_user_sidebar()
