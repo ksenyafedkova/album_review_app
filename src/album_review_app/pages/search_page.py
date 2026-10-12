@@ -135,9 +135,9 @@ def show_search_page():
 
 
 
-album_id = st.query_params.get("album")
+album_spotify_id = st.query_params.get("album")
 
-if album_id:
-    show_album_page(album_id)
+if album_spotify_id:
+    show_album_page(album_spotify_id)
 else:
     show_search_page()

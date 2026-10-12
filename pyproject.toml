@@ -15,6 +15,7 @@ dependencies = [
     "mysql-connector-python",
     "bcrypt",
     "fastapi>=0.142.2",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]

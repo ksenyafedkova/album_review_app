@@ -1,0 +1,22 @@
+create table IF NOT EXISTS users
+(id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+username VARCHAR(20) NOT NULL UNIQUE,
+email VARCHAR(40) NOT NULL UNIQUE,
+first_name VARCHAR(30),
+last_name VARCHAR(30),
+created_at DATE NOT NULL,
+updated_at DATE NOT NULL,
+password_hash VARCHAR(500) NOT NULL);
+
+create table IF NOT EXISTS artists
+(id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+name VARCHAR(100),
+spotify_id VARCHAR(100));
+
+
+create table IF NOT EXISTS albums
+(id INT AUTO_INCREMENT PRIMARY KEY UNIQUE NOT NULL,
+artist_id INT FOREIGN KEY NOT NULL,
+name VARCHAR(100) NOT NULL,
+spotify_id VARCHAR(100) UNIQUE NOT NULL,
+FOREIGN KEY (artist_id) REFERENCES artists(id));

@@ -2,13 +2,13 @@ import streamlit as st
 from spotify_api import get_album_info_from_spotify
 
 
-def show_album_page(album_id):
+def show_album_page(album_spotify_id):
     if st.button("← Back"):
         st.session_state['return_to_search'] = True
         del st.query_params["album"]
         st.rerun()
 
-    album_info = get_album_info_from_spotify(album_id)
+    album_info = get_album_info_from_spotify(album_spotify_id)
 
     st.title(album_info['album_name'])
 
