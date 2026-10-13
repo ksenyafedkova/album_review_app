@@ -1,19 +1,8 @@
-from backend.db_request import make_request, execute_request, execute_insert
+from backend.db_request import DatabaseClient
 from fastapi import APIRouter
-from pydantic import BaseModel
+from backend.schemes.schemes import SpotifyAlbum, SpotifyArtist
 
 router = APIRouter(prefix='/albums', tags=['albums'])
-
-class SpotifyArtist(BaseModel):
-    spotify_id: str
-    name: str
-
-class SpotifyAlbum(BaseModel):
-    spotify_id: str
-    name: str
-    release_date: str
-    cover_url: str
-    artist: SpotifyArtist
 
 @router.get("/{album_spotify_id}")
 def get_album_by_spotify_id(album_spotify_id: str):
@@ -23,11 +12,11 @@ def get_album_by_spotify_id(album_spotify_id: str):
         WHERE spotify_id = %s;
     '''
 
-    result = make_request(
-        req_get_album,
-        "AlbumReviews",
-        (album_spotify_id,)
-    )
+    with DatabaseClient("AlbumReviews") as db:
+        result = db.make_request(
+            req_get_album,
+            (album_spotify_id,)
+        )
 
     if result:
         return result[0]['id']
@@ -46,13 +35,16 @@ def add_album(
             (%s, %s, %s, %s, %s);
     '''
 
-    return execute_insert(
-        req_add_album,
-        "AlbumReviews",
-        (
-            artist_inner_id,
-            album.name,
-            album.spotify_id,
-            album.release_date,
-            album.cover_url)
-    )
+    with DatabaseClient("AlbumReviews") as db:
+        album_inner_id = db.execute_insert(
+            req_add_album,
+            (
+                artist_inner_id,
+                album.name,
+                album.spotify_id,
+                album.release_date,
+                album.cover_url
+            )
+        )
+
+    return album_inner_id

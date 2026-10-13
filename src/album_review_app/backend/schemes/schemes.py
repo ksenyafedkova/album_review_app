@@ -1,9 +1,18 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
-class User(BaseModel):
-    username: str = Field(min_length=5, max_length=20, pattern='^[A-z][A-z0-9]+')
-    email: str
-    password_hash: str
+class UserCreate(BaseModel):
+    username: str = Field(
+        min_length=5,
+        max_length=20,
+        pattern=r'^[A-Za-z][A-Za-z0-9_]*$'
+    )
+    email: EmailStr
+    password_hash: str = Field(min_length=8)
+
+
+class UserLogin(BaseModel):
+    username_or_email: str
+    password: str
 
 
 class SpotifyArtist(BaseModel):

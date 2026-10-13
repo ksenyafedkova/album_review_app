@@ -1,11 +1,8 @@
 import os
-from urllib.parse import uses_relative
 
 from dotenv import load_dotenv
 import mysql.connector
 from logger import logger
-import streamlit as st
-
 
 load_dotenv()
 
@@ -20,83 +17,82 @@ def _get_connection(database=None):
 
     return mysql.connector.connect(**kwargs)
 
-def make_request(req, db_name, args=tuple()):
-    connection = None
-    cursor = None
 
-    try:
-        connection = _get_connection(db_name)
-        cursor = connection.cursor(dictionary=True)
+class DatabaseClient:
 
-        if args:
+    def __init__(self, database):
+        self.database = database
+        self.connection = None
+
+    def __enter__(self):
+        self.connection = _get_connection(self.database)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            if self.connection:
+                if exc_type is not None:
+                    self.connection.rollback()
+        finally:
+            if self.connection:
+                self.connection.close()
+                self.connection = None
+
+        return False
+
+    def _execute(self, req, args=(), dictionary=False):
+        cursor = None
+
+        try:
+            cursor = self.connection.cursor(dictionary=dictionary)
             cursor.execute(req, args)
-        else:
-            cursor.execute(req)
+            return cursor
 
-        res = cursor.fetchall()
-        return res
+        except Exception as e:
+            if cursor:
+                cursor.close()
+            logger.error(f"Database request failed: {e}")
+            raise
 
-    except Exception as e:
-        logger.error(f'Database request failed: {e}')
-        raise
+    def make_request(self, req, args=()):
+        cursor = None
 
-    finally:
-        if cursor:
-            cursor.close()
+        try:
+            cursor = self._execute(req, args, dictionary=True)
+            return cursor.fetchall()
 
-        if connection:
-            connection.close()
+        finally:
+            if cursor:
+                cursor.close()
 
-def execute_request(req, db_name, args=()):
-    connection = None
-    cursor = None
+    def execute_request(self, req, args=()):
+        cursor = None
 
-    try:
-        connection = _get_connection(db_name)
-        cursor = connection.cursor()
+        try:
+            cursor = self._execute(req, args)
+            self.connection.commit()
 
-        if args:
-            cursor.execute(req, args)
-        else:
-            cursor.execute(req)
+        except Exception:
+            self.connection.rollback()
+            raise
 
-        connection.commit()
+        finally:
+            if cursor:
+                cursor.close()
 
-    except Exception as e:
-        logger.error(f'Database request failed: {e}')
-        raise
+    def execute_insert(self, req, args=()):
+        cursor = None
 
-    finally:
-        if cursor:
-            cursor.close()
+        try:
+            cursor = self._execute(req, args)
+            lastrowid = cursor.lastrowid
+            self.connection.commit()
+            return lastrowid
 
-        if connection:
-            connection.close()
+        except Exception:
+            self.connection.rollback()
+            raise
 
-
-def execute_insert(req, db_name, args=()):
-    connection = None
-    cursor = None
-
-    try:
-        connection = _get_connection(db_name)
-        cursor = connection.cursor()
-
-        if args:
-            cursor.execute(req, args)
-        else:
-            cursor.execute(req)
-
-        connection.commit()
-        return cursor.lastrowid
-
-    except Exception as e:
-        logger.error(f'Database request failed: {e}')
-        raise
-
-    finally:
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
+        finally:
+            if cursor:
+                cursor.close()

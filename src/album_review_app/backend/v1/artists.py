@@ -1,6 +1,5 @@
-from backend.db_request import make_request, execute_request, execute_insert
+from backend.db_request import DatabaseClient
 from fastapi import APIRouter
-from pydantic import BaseModel
 from backend.schemes.schemes import SpotifyArtist
 
 router = APIRouter(prefix='/artists', tags=['artists'])
@@ -16,11 +15,13 @@ def add_artist(
         VALUES (%s, %s);
     '''
 
-    return execute_insert(
+    with DatabaseClient("AlbumReviews") as db:
+        artist_inner_id = db.execute_insert(
         req_add_artist,
-        "AlbumReviews",
         (artist.name, artist.spotify_id)
     )
+
+    return artist_inner_id
 
 @router.get("/{artist_spotify_id}")
 def get_artist_by_spotify_id(artist_spotify_id: str):
@@ -30,9 +31,9 @@ def get_artist_by_spotify_id(artist_spotify_id: str):
         WHERE spotify_id = %s;
     '''
 
-    result = make_request(
+    with DatabaseClient("AlbumReviews") as db:
+        result = db.make_request(
         req_get_artist,
-        "AlbumReviews",
         (artist_spotify_id,)
     )
 
