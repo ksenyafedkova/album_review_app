@@ -1,6 +1,7 @@
 import streamlit as st
-from spotify_api import get_album_info_from_spotify
+from spotify_api import SpotifyClient
 
+spotify = SpotifyClient()
 
 def show_album_page(album_spotify_id):
     if st.button("← Back"):
@@ -8,7 +9,7 @@ def show_album_page(album_spotify_id):
         del st.query_params["album"]
         st.rerun()
 
-    album_info = get_album_info_from_spotify(album_spotify_id)
+    album_info = spotify.get_full_album_info(album_spotify_id)
 
     st.title(album_info['album_name'])
 

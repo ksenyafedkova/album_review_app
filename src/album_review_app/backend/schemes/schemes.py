@@ -23,5 +23,6 @@ class SpotifyAlbum(BaseModel):
     spotify_id: str
     name: str
     release_date: str
+    release_date_precision: str
     cover_url: str
     artist: SpotifyArtist

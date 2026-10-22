@@ -1,13 +1,16 @@
 import streamlit as st
 from album_review_app.ui import hide_sidebar_navigation, show_user_sidebar
-from album_review_app.spotify_api import search_
+from album_review_app.spotify_api import SpotifyClient
 from album_review_app.album_page import show_album_page
 from album_review_app.logger import logger
 
-from album_review_app.backend.db_request import (save_album_to_shelf)
+from album_review_app.backend.v1.api_script import save_album_to_shelf
+from album_review_app.backend.schemes.schemes import SpotifyAlbum, SpotifyArtist
 
 hide_sidebar_navigation()
 show_user_sidebar()
+
+spotify = SpotifyClient()
 
 def show_search_page():
     artist_or_album = st.selectbox(
@@ -30,19 +33,8 @@ def show_search_page():
     if search_string:
         if st.button('Search'):
             if artist_or_album == 'Album':
-                # positive = 0
-                # negative = 0
-                # for _ in range(1):
-                #     result_album = search_(album=search_string)
-                #     if result_album.get('albums', 0):
-                #         positive += 1
-                #     else:
-                #         negative += 1
-                # st.success(f'Positive: {positive}')
-                # st.error(f'Negative: {negative}')
-                # st.write(result_album)
                 try:
-                    result_album = search_(album=search_string)
+                    result_album = spotify.search(album=search_string)
                     st.session_state['albums'] = result_album['albums']['items']
                     st.session_state['last_search'] = search_string
                 except Exception as e:
@@ -94,9 +86,21 @@ def show_search_page():
                             key=f"shelf_{album['id']}"
                         ):
                             try:
+                                album_data = SpotifyAlbum(
+                                    spotify_id=album["id"],
+                                    name=album["name"],
+                                    release_date=album["release_date"],
+                                    release_date_precision=album["release_date_precision"],
+                                    cover_url=album["images"][0]["url"],
+                                    artist=SpotifyArtist(
+                                        spotify_id=album["artists"][0]["id"],
+                                        name=album["artists"][0]["name"]
+                                    )
+                                )
+
                                 added = save_album_to_shelf(
-                                    st.session_state['user_id'],
-                                    album
+                                    st.session_state["user_id"],
+                                    album_data
                                 )
 
                                 if added:
@@ -127,11 +131,11 @@ def show_search_page():
 
 
             # if artist_or_album == 'Artist':
-            #     result_artist = search_(artist=search_string)
+            #     result_artist = spotify.search(artist=search_string)
             #     st.write(result_artist)
             #
             # if artist_or_album == 'Album and Artist':
-            #     result_album_artist = search_(search_string)
+            #     result_album_artist = spotify.search(search_string)
 
 
 

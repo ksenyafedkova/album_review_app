@@ -1,6 +1,6 @@
 import streamlit as st
 from album_review_app.ui import hide_sidebar_navigation, show_user_sidebar
-from album_review_app.backend.db_request import get_user_albums, delete_from_shelf
+from album_review_app.backend.v1.api_script import get_user_albums, delete_from_shelf
 from album_review_app.logger import logger
 from album_review_app.album_page import show_album_page
 
@@ -8,9 +8,10 @@ hide_sidebar_navigation()
 show_user_sidebar()
 
 username = st.session_state['username']
+user_id = st.session_state['user_id']
 
 def show_home_page():
-    user_albums = get_user_albums(username)
+    user_albums = get_user_albums(user_id)
 
     for album in user_albums:
         col1, col2 = st.columns([1, 4])

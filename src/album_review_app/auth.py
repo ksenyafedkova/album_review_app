@@ -1,5 +1,6 @@
 import streamlit as st
-from album_review_app.backend.db_request import check_user, create_user
+from album_review_app.backend.v1.api_script import check_user, create_user
+from album_review_app.backend.schemes.schemes import UserCreate
 import bcrypt
 from logger import logger
 
@@ -38,11 +39,13 @@ def register_user():
                     password_hash = password_hash.decode('utf-8')
 
                     try:
-                        create_user(
-                            username,
-                            email,
-                            password_hash
+                        user_data = UserCreate(
+                            username=username,
+                            email=email,
+                            password_hash=password_hash
                         )
+
+                        create_user(user_data)
 
                         st.success('Account created successfully!')
                     except Exception as e:
@@ -50,6 +53,70 @@ def register_user():
                             f'Failed to create account for username {username}: {e}'
                         )
                         st.error('Something went wrong while creating your account.')
+
+
+
+
+
+def _check_user_in_db(username_or_email):
+    try:
+        users = check_user(username_or_email)
+        return users[0] if users else None
+
+    except Exception as e:
+        logger.error(
+            f'Database request failed while checking user '
+            f'{username_or_email}: {e}'
+        )
+        st.error('Something went wrong. Please try again later.')
+        st.stop()
+
+def _verify_password(password, password_hash, username):
+    try:
+        return bcrypt.checkpw(
+            password.encode('utf-8'),
+            password_hash.encode('utf-8')
+        )
+
+    # except Exception as e:
+    #     logger.error(
+    #         f'Password verification failed for user {username}: {e}'
+    #     )
+    #     st.error('Something went wrong. Please try again later.')
+    #     st.stop()
+
+    except Exception as e:
+        print(f'Password verification failed: {e!r}')
+        raise
+
+def _set_logged_in_user(user):
+    st.session_state['logged_in'] = True
+    st.session_state['user_id'] = user['id']
+    st.session_state['username'] = user['username']
+
+def _process_login(username_or_email, password):
+    if not username_or_email or not password:
+        st.info('Please fill in all fields.')
+        return
+
+    user = _check_user_in_db(username_or_email)
+
+    if not user:
+        st.info('There is no such user.')
+        return
+
+    password_correct = _verify_password(
+        password,
+        user['password_hash'],
+        user['username']
+    )
+
+    if password_correct:
+        _set_logged_in_user(user)
+        st.success('Login successful!')
+    else:
+        st.info('Incorrect password.')
+
 
 def login_user():
     with (st.form(key='Login form', enter_to_submit=False)):
@@ -59,39 +126,4 @@ def login_user():
         submitted = st.form_submit_button('Log in')
 
         if submitted:
-            if not username_or_email or not password:
-                st.info('Please fill in all fields.')
-            else:
-                try:
-                    user = check_user(username_or_email)
-                except Exception as e:
-                    logger.error(
-                        f'Login database request failed for '
-                        f'{username_or_email}: {e}'
-                    )
-                    st.error('Something went wrong. Please try again later.')
-                    st.stop()
-                if not user:
-                    st.info('There is no such user.')
-                else:
-                    try:
-                        password_hash = user[0]['password_hash']
-                        password_correct = bcrypt.checkpw(
-                            password.encode('utf-8'),
-                            password_hash.encode('utf-8')
-                        )
-                    except Exception as e:
-                        logger.error(
-                            f'Password verification failed for user '
-                            f'{user[0]["username"]}: {e}'
-                        )
-                        st.error('Something went wrong. Please try again later.')
-                        st.stop()
-
-                    if password_correct:
-                        st.session_state['logged_in'] = True
-                        st.session_state['user_id'] = user[0]['id']
-                        st.session_state['username'] = user[0]['username']
-                        st.success('Login successful!')
-                    else:
-                        st.info('Incorrect password.')
+            _process_login(username_or_email, password)
